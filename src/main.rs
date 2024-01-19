@@ -81,19 +81,11 @@ fn get_word_indices(input: &str) -> Vec<(&str, usize)> {
 }
 
 fn draw_squiggly_lines(input: &Vec<(&str, usize)>, indices: &Vec<usize>) {
-    let mut current_index = 0;
-
-    for (word, index) in input {
-        let index_value = match indices.get(current_index) {
-            Some(index) => index, 
-            None => return,
-        };    
-
-        if index == index_value {
+    for ((word, index), &index_value) in input.iter().zip(indices.iter().cycle()) {
+        if *index == index_value {
             for _ in 0..clean_word(word).len() {
                 print!("^");
             }
-            current_index += 1;
         } else {
             for _ in 0..clean_word(word).len() {
                 print!(" ");
