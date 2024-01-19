@@ -33,10 +33,7 @@ fn lev(str1: &str, str2: &str) -> usize {
     .unwrap();
 }
 
-fn get_num_corrections<'a>(
-    word: &'a str,
-    dictionary: &'a HashSet<String>,
-) -> Vec<(&'a String, usize)> {
+fn get_num_corrections<'a>(word: &'a str,dictionary: &'a HashSet<String>) -> Vec<(&'a String, usize)> {
     c![(s, lev(word, s)), for s in dictionary]
 }
 
@@ -58,5 +55,16 @@ fn main() {
             continue;
         }
 
+        println!("\nUnknown word: \"{word}\", maybe try:");
+
+        let mut moves = get_num_corrections(word, &dictionary);
+        moves.sort_by(|a, b| a.1.cmp(&b.1));
+
+        let suggestions = (&moves[0..=5]).to_vec();
+        let suggestions: Vec<&String> = suggestions.into_iter().map(|x| { x.0 }).collect();
+        
+        for suggestion in suggestions {
+            println!("{word} -> {suggestion}");
+        }
     }
 }
