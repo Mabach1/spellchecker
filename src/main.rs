@@ -48,12 +48,10 @@ fn get_num_corrections<'a>(
 }
 
 fn write_suggestions(unknown_word: &str, dictionary: &HashSet<String>) {
-    println!("\nUnknown word: '{}' , maybe try:", unknown_word);
-
     let mut moves = get_num_corrections(unknown_word, &dictionary);
     moves.sort_by(|a, b| a.1.cmp(&b.1));
 
-    let suggestions = (&moves[0..=3]).to_vec();
+    let suggestions = (&moves[0..=4]).to_vec();
     let suggestions: Vec<&String> = suggestions.into_iter().map(|x| x.0).collect();
 
     for suggestion in suggestions {
@@ -95,40 +93,35 @@ fn clean_word(string: &str) -> String {
         .collect()
 }
 
-fn error_output(input_string: &str, dictionary: &HashSet<String>,indices: &Vec<usize>, words: &Vec<String>) {
-    for (index, word) in indices.iter().zip(words.iter()) {
-        println!("{input_string}");
-        for _ in 0..*index {
-            print!(" ");
-        }
-        for _ in 0..clean_word(word).len() {
-            print!("^");
-        }
-        write_suggestions(&clean_word(word), &dictionary);
-        print!("\n");
+fn error_output(input_string: &str, word: (&str, usize), dictionary: &HashSet<String>) {
+    println!("{input_string}");
+
+    for _ in 0..word.1 {
+        print!(" ");
     }
+
+    for _ in 0..clean_word(word.0).len() {
+        print!("^");
+    }
+
+    println!(" unknown word, maybe try");
+    write_suggestions(&clean_word(&word.0.to_lowercase()), &dictionary);
+    print!("\n");
 }
 
 fn main() {
     let dictionary = read_dictionary("words.txt");
     let dictionary = make_dictionary(&dictionary);
 
-    let input_string = "Helo mom, I luve you!";
+    let input_string = "Helllo mom, I luve you!";
 
     let word_index = get_word_indices(input_string);
-
-    let mut incorrect_indices: Vec<usize> = Vec::new();
-    let mut incorrect_words: Vec<String> = Vec::new();
 
     for (word, index) in &word_index {
         let cleaned_word = clean_word(word).to_lowercase();
 
         if !dictionary.contains(&cleaned_word) {
-            incorrect_indices.push(*index);
-            incorrect_words.push(cleaned_word);
+            error_output(input_string, (word, *index), &dictionary)
         }
     }
-
-    error_output(input_string, &dictionary, &incorrect_indices, &incorrect_words);
-    // draw_squiggly_lines(&word_index, &incorrect_indices);
 }
