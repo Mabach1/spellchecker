@@ -2,6 +2,7 @@ use cute::c;
 use std::collections::HashSet;
 use std::fs::read_to_string;
 use std::vec;
+use std::env;
 
 fn read_dictionary(filename: &str) -> Vec<String> {
     let mut res = Vec::new();
@@ -19,6 +20,7 @@ fn make_dictionary(lines: &Vec<String>) -> HashSet<String> {
     res
 }
 
+ #[allow(dead_code)]
 fn lev(str1: &str, str2: &str) -> usize {
     if str1.len() == 0 {
         return str2.len();
@@ -138,18 +140,25 @@ fn error_output(input_string: &str, word: (&str, usize), dictionary: &HashSet<St
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        println!("\nIncorrect amount of arguments <input_string>");
+        return;
+    }
+
     let dictionary = read_dictionary("words.txt");
     let dictionary = make_dictionary(&dictionary);
 
-    let input_string = "Helo mom, I luve you!";
+    let input_string = args[1..].join(" ");
 
-    let word_index = get_word_indices(input_string);
+    let word_index = get_word_indices(&input_string);
 
     for (word, index) in &word_index {
         let cleaned_word = clean_word(word).to_lowercase();
 
         if !dictionary.contains(&cleaned_word) {
-            error_output(input_string, (word, *index), &dictionary)
+            error_output(&input_string, (word, *index), &dictionary)
         }
     }
 }
