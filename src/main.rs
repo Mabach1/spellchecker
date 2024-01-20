@@ -1,12 +1,19 @@
 use cute::c;
 use std::collections::HashSet;
-use std::env::current_exe;
 use std::fs::read_to_string;
 use std::vec;
 
-fn read_dictionary(filename: &str) -> HashSet<String> {
-    let mut res = HashSet::new();
+fn read_dictionary(filename: &str) -> Vec<String> {
+    let mut res = Vec::new();
     for line in read_to_string(filename).unwrap().lines() {
+        res.push(line.to_string());
+    }
+    res
+}
+
+fn make_dictionary(lines: &Vec<String>) -> HashSet<String> {
+    let mut res = HashSet::new();
+    for line in lines {
         res.insert(line.to_string());
     }
     res
@@ -41,7 +48,7 @@ fn get_num_corrections<'a>(
 }
 
 fn write_suggestions(unknown_word: &str, dictionary: &HashSet<String>) {
-    println!("\nUnknown word: \"{}\", maybe try:", unknown_word);
+    println!("\nUnknown word: '{}' , maybe try:", unknown_word);
 
     let mut moves = get_num_corrections(unknown_word, &dictionary);
     moves.sort_by(|a, b| a.1.cmp(&b.1));
@@ -50,7 +57,7 @@ fn write_suggestions(unknown_word: &str, dictionary: &HashSet<String>) {
     let suggestions: Vec<&String> = suggestions.into_iter().map(|x| x.0).collect();
 
     for suggestion in suggestions {
-        println!("{unknown_word} -> {suggestion}");
+        println!("  {unknown_word} -> {suggestion}");
     }
 }
 
@@ -80,24 +87,6 @@ fn get_word_indices(input: &str) -> Vec<(&str, usize)> {
     res
 }
 
-fn draw_squiggly_lines(input: &Vec<(&str, usize)>, indices: &Vec<usize>) {
-    for ((word, index), &index_value) in input.iter().zip(indices.iter().cycle()) {
-        if *index == index_value {
-            for _ in 0..clean_word(word).len() {
-                print!("^");
-            }
-        } else {
-            for _ in 0..clean_word(word).len() {
-                print!(" ");
-            }
-        }
-
-        for _ in 0..(word.len() - clean_word(word).len() + 1) {
-            print!(" ");
-        }
-    }
-}
-
 fn clean_word(string: &str) -> String {
     string
         .to_string()
@@ -106,8 +95,24 @@ fn clean_word(string: &str) -> String {
         .collect()
 }
 
+fn error_output(input_string: &str, dictionary: &HashSet<String>,indices: &Vec<usize>, words: &Vec<String>) {
+    for (index, word) in indices.iter().zip(words.iter()) {
+        println!("{input_string}");
+        for _ in 0..*index {
+            print!(" ");
+        }
+        for _ in 0..clean_word(word).len() {
+            print!("^");
+        }
+        write_suggestions(&clean_word(word), &dictionary);
+        print!("\n");
+    }
+}
+
 fn main() {
     let dictionary = read_dictionary("words.txt");
+    let dictionary = make_dictionary(&dictionary);
+
     let input_string = "Helo mom, I luve you!";
 
     let word_index = get_word_indices(input_string);
@@ -124,13 +129,6 @@ fn main() {
         }
     }
 
-    println!("{input_string}");
-    draw_squiggly_lines(&word_index, &incorrect_indices);
-    println!("");
-
-    // for word in words {
-    //     if !dictionary.contains(word) {
-    //         write_suggestions(word, &dictionary);
-    //     }
-    // }
+    error_output(input_string, &dictionary, &incorrect_indices, &incorrect_words);
+    // draw_squiggly_lines(&word_index, &incorrect_indices);
 }
