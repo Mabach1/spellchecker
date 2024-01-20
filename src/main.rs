@@ -40,18 +40,46 @@ fn lev(str1: &str, str2: &str) -> usize {
     .unwrap();
 }
 
-fn get_num_corrections<'a>(
-    word: &'a str,
-    dictionary: &'a HashSet<String>,
-) -> Vec<(&'a String, usize)> {
-    c![(s, lev(word, s)), for s in dictionary]
+fn wagner_fisher(str1: &str, str2: &str) -> u64 {
+    let n = str1.len();
+    let m = str2.len();
+
+    let mut dp = vec![0u64; (n + 1) * (m + 1)];
+
+    for i in 0..=n {
+        for j in 0..=m {
+            if i == 0 {
+                dp[j] = j as u64;
+            } else if j == 0 {
+                dp[i * (m + 1)] = i as u64;
+            } else if str1.chars().nth(i - 1).unwrap() == str2.chars().nth(j - 1).unwrap() {
+                dp[i * (m + 1) + j] = dp[(i - 1) * (m + 1) + (j - 1)];
+            } else {
+                dp[i * (m + 1) + j] = 1u64
+                    + [
+                        dp[i * (m + 1) + (j - 1)],
+                        dp[(i - 1) * (m + 1) + j],
+                        dp[(i - 1) * (m + 1) + (j - 1)],
+                    ]
+                    .iter()
+                    .min()
+                    .unwrap();
+            }
+        }
+    }
+
+    *dp.last().unwrap()
 }
 
-fn write_suggestions(unknown_word: &str, dictionary: &HashSet<String>) {
+fn get_num_corrections<'a>(word: &'a str, dictionary: &'a HashSet<String>) -> Vec<(&'a String, u64)> {
+    c![(s, wagner_fisher(word, s)), for s in dictionary]
+}
+
+fn write_suggestions(unknown_word: &str, dictionary: &HashSet<String>, num_suggestions: usize) {
     let mut moves = get_num_corrections(unknown_word, &dictionary);
     moves.sort_by(|a, b| a.1.cmp(&b.1));
 
-    let suggestions = (&moves[0..=4]).to_vec();
+    let suggestions = (&moves[0..num_suggestions]).to_vec();
     let suggestions: Vec<&String> = suggestions.into_iter().map(|x| x.0).collect();
 
     for suggestion in suggestions {
@@ -105,7 +133,7 @@ fn error_output(input_string: &str, word: (&str, usize), dictionary: &HashSet<St
     }
 
     println!(" unknown word, maybe try");
-    write_suggestions(&clean_word(&word.0.to_lowercase()), &dictionary);
+    write_suggestions(&clean_word(&word.0.to_lowercase()), &dictionary, 4);
     print!("\n");
 }
 
@@ -113,7 +141,7 @@ fn main() {
     let dictionary = read_dictionary("words.txt");
     let dictionary = make_dictionary(&dictionary);
 
-    let input_string = "Helllo mom, I luve you!";
+    let input_string = "Helo mom, I luve you!";
 
     let word_index = get_word_indices(input_string);
 
