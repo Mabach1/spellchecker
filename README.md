@@ -10,6 +10,24 @@ Wagner-Fisher distance algorithm
 ---------------------------------
 Much more effective, using matrices.
 
+Usage (Try it for yourself)
+===========================
+You can run the program and put the sentence, you want to correct, as argument like this
+
+```bash
+$ cargo run Helo mom, I luve you!
+```
+then the program will go word by word and if it detects an unknown word it will printed it out
+
+```bash
+Helo mom, I luve you!
+^^^^ unknown word, maybe try
+  helo -> hell
+  helo -> held
+  helo -> hero
+  helo -> hello
+```
+
 Resources
 =========
 * [video that inspired this](https://www.youtube.com/watch?v=d-Eq6x1yssU&ab_channel=b001)
